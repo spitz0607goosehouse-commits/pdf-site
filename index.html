@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>PDF ライブラリ</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Yu Gothic",sans-serif;background:#f5f5f7;color:#1d1d1f;min-height:100vh}
+header{background:#fff;border-bottom:1px solid #d2d2d7;padding:20px 40px;position:sticky;top:0;z-index:100}
+header h1{font-size:24px;font-weight:600}
+header p{font-size:13px;color:#86868b;margin-top:4px}
+.container{max-width:960px;margin:32px auto;padding:0 20px}
+.pdf-list{display:flex;flex-direction:column}
+.pdf-item{background:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0f0f5;transition:background 0.2s}
+.pdf-item:first-child{border-radius:12px 12px 0 0}
+.pdf-item:last-child{border-bottom:none;border-radius:0 0 12px 12px}
+.pdf-item:only-child{border-radius:12px}
+.pdf-item:hover{background:#fafafa}
+.pdf-info{display:flex;align-items:center;gap:14px;min-width:0;flex:1}
+.pdf-icon{width:38px;height:38px;background:#ff3b30;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:11px;flex-shrink:0}
+.pdf-name{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pdf-meta{font-size:12px;color:#86868b;margin-top:2px}
+.pdf-actions{display:flex;gap:8px;flex-shrink:0}
+.btn{padding:7px 14px;border-radius:8px;border:none;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;transition:background 0.2s;display:inline-block;text-align:center}
+.btn-view{background:#007aff;color:#fff}
+.btn-view:hover{background:#0066d6}
+.btn-dl{background:#e8e8ed;color:#1d1d1f}
+.btn-dl:hover{background:#d2d2d7}
+.viewer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;justify-content:center;align-items:center}
+.viewer-overlay.active{display:flex}
+.viewer{background:#fff;border-radius:16px;width:95vw;height:93vh;display:flex;flex-direction:column;overflow:hidden}
+.viewer-header{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid #d2d2d7;flex-shrink:0}
+.viewer-header h2{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;margin-right:12px}
+.viewer-close{padding:6px 16px;border-radius:8px;border:none;background:#e8e8ed;font-size:14px;cursor:pointer;font-weight:500}
+.viewer-body{flex:1;overflow:hidden}
+.viewer-body iframe{width:100%;height:100%;border:none}
+.empty{text-align:center;padding:80px 20px;color:#86868b;font-size:16px}
+@media(max-width:600px){header{padding:16px 20px}.pdf-item{flex-direction:column;align-items:flex-start;gap:10px}.pdf-actions{width:100%}.btn{flex:1;text-align:center}.viewer{width:100vw;height:100vh;border-radius:0}}
+</style>
+</head>
+<body>
+<header><h1>高3東大理系数学 PDF</h1><p id="update-time"></p></header>
+<div class="container"><div class="pdf-list" id="pdf-list"><div class="empty">読み込み中...</div></div></div>
+<div class="viewer-overlay" id="viewer"><div class="viewer"><div class="viewer-header"><h2 id="viewer-title">PDF</h2><button class="viewer-close" onclick="closeViewer()">閉じる</button></div><div class="viewer-body" id="viewer-body"></div></div></div>
+<script>
+var SITE_URL='https://spitz0607goosehouse-commits.github.io/pdf-site';
+async function load(){try{var res=await fetch('filelist.json?'+Date.now());var data=await res.json();document.getElementById('update-time').textContent='最終更新: '+data.updated;var el=document.getElementById('pdf-list');if(!data.files||data.files.length===0){el.innerHTML='<div class="empty">PDFがありません</div>';return;}el.innerHTML=data.files.map(function(f){var path='pdfs/'+encodeURIComponent(f.name);var gview='https://docs.google.com/gview?url='+encodeURIComponent(SITE_URL+'/'+path)+'&embedded=true';return'<div class="pdf-item"><div class="pdf-info"><div class="pdf-icon">PDF</div><div><div class="pdf-name">'+f.name+'</div><div class="pdf-meta">'+f.size+(f.date?' · '+f.date:'')+'</div></div></div><div class="pdf-actions"><button class="btn btn-view" onclick="openViewer(\''+f.name.replace(/'/g,"\\'")+'\',\''+gview+'\')">閲覧</button><a class="btn btn-dl" href="'+path+'" download>DL</a></div></div>';}).join('');}catch(e){document.getElementById('pdf-list').innerHTML='<div class="empty">読み込み失敗</div>';}}
+function openViewer(n,url){document.getElementById('viewer-title').textContent=n;document.getElementById('viewer').classList.add('active');document.getElementById('viewer-body').innerHTML='<iframe src="'+url+'"></iframe>';}
+function closeViewer(){document.getElementById('viewer').classList.remove('active');document.getElementById('viewer-body').innerHTML='';}
+document.getElementById('viewer').addEventListener('click',function(e){if(e.target===this)closeViewer();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeViewer();});
+load();
+</script>
+</body>
+</html>
